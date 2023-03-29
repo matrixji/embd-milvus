@@ -105,6 +105,7 @@ function build_linux_x86_64() {
 function install_deps_for_macosx() {
     brew install boost libomp ninja tbb openblas ccache pkg-config
     if [[ ! -d "/usr/local/opt/llvm" ]]; then
+        # 2.3 or later use llvm@15, or marbe this WA it not needed
         ln -s /usr/local/opt/llvm@14 /usr/local/opt/llvm
     fi
 }
@@ -161,25 +162,38 @@ function build_macosx_arm64() {
 
 function build_milvus() {
     set -e
-    if [ -f ${build_dir}/milvus/build.ok ] ; then
-        echo already build success, if you need rebuild it use -f flag or remove file: ${build_dir}/milvus/build.ok
-    else
-        # build for os
-        case $OS in
-            Linux)
-                build_linux_${ARCH}
-                ;;
-            MINGW*)
-                build_msys
-                ;;
-            Darwin)
-                build_macosx_${ARCH}
-                ;;
-            *)
-                ;;
-        esac
-        touch ${build_dir}/milvus/build.ok
+    # prepare output
+    cd ${build_dir}
+    # check if prev build ok
+    if [ -f output/build.txt ] ; then
+        cp -fr env.sh output/env.sh.txt
+        cp -fr build.sh output/build.sh.txt
+        if md5sum -c output/build.txt ; then
+            echo already build success, if you need rebuild it use -f flag or remove file: ${build_dir}/output/build.txt
+            exit 0
+        fi
     fi
+    # build for os
+    case $OS in
+        Linux)
+            build_linux_${ARCH}
+            ;;
+        MINGW*)
+            build_msys
+            ;;
+        Darwin)
+            build_macosx_${ARCH}
+            ;;
+        *)
+            ;;
+    esac
+
+    cd ${build_dir}
+    rm -fr output && mkdir output
+    cp -fr env.sh output/env.sh.txt
+    cp -fr build.sh output/build.sh.txt
+    cp -fr milvus/bin/* output
+    md5sum output/* | grep -v build.txt > output/build.txt
 }
 
 build_milvus

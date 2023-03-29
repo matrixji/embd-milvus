@@ -15,10 +15,12 @@ def _build_milvus_binary():
     if status != 0:
         raise RuntimeError('Build milvus binary failed')
     # install it to data/bin
-    bin_dir = os.path.join(project_dir, 'milvus_binary', 'milvus', 'bin')
+    bin_dir = os.path.join(project_dir, 'milvus_binary', 'output')
     to_dir = os.path.join(project_dir, 'src', 'milvus', 'data', 'bin')
     os.makedirs(to_dir, exist_ok=True)
     for file in os.listdir(bin_dir):
+        if file.endswith('.txt'):
+            continue
         file_from = os.path.join(bin_dir, file)
         file_to = os.path.join(to_dir, f'{file}.lzma')
         with lzma.open(file_to, 'wb') as lzma_file:
