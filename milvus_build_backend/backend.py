@@ -37,7 +37,7 @@ def _get_platform():
         elif machine_text == 'arm64':
             return 'macosx_11_0_arm64'
     if sys.platform.lower() == 'linux':
-        return f'manylinux2014_{machine_text}'
+        return f'manylinux_2_27_{machine_text}'
     if sys.platform.lower() == 'win32':
         return 'win_amd64'
 

@@ -1,0 +1,103 @@
+From 23a1db027540df90e13d4840ef997d2bb1b30aa7 Mon Sep 17 00:00:00 2001
+From: Ji Bin <matrixji@live.com>
+Date: Sat, 9 Sep 2023 19:57:04 +0800
+Subject: [PATCH] adaptation for maca
+
+Signed-off-by: Ji Bin <matrixji@live.com>
+---
+ internal/core/build.sh                           | 1 -
+ internal/core/src/index/CMakeLists.txt           | 5 +++++
+ internal/core/src/segcore/CMakeLists.txt         | 5 +++++
+ internal/core/thirdparty/knowhere/CMakeLists.txt | 4 ++--
+ scripts/core_build.sh                            | 1 -
+ 5 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/internal/core/build.sh b/internal/core/build.sh
+index ec918b78a..e8fbe45a9 100755
+--- a/internal/core/build.sh
++++ b/internal/core/build.sh
+@@ -145,7 +145,6 @@ CMAKE_CMD="cmake \
+ -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
+ -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+ -DOpenBLAS_SOURCE=AUTO \
+--DCMAKE_CUDA_COMPILER=${CUDA_COMPILER} \
+ -DBUILD_COVERAGE=${BUILD_COVERAGE} \
+ -DENABLE_CPU_PROFILING=${PROFILING} \
+ -DMILVUS_GPU_VERSION=${GPU_VERSION} \
+diff --git a/internal/core/src/index/CMakeLists.txt b/internal/core/src/index/CMakeLists.txt
+index 11da14d5b..3887ad8a5 100644
+--- a/internal/core/src/index/CMakeLists.txt
++++ b/internal/core/src/index/CMakeLists.txt
+@@ -35,9 +35,14 @@ if (MSYS)
+     set(PLATFORM_LIBS -Wl,--allow-multiple-definition)
+ endif ()
+ 
++if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
++  set(CXXFS_LIBS stdc++fs)
++endif ()
++
+ target_link_libraries(milvus_index
+         milvus_storage
+         ${PLATFORM_LIBS}
++        ${CXXFS_LIBS}
+         )
+ 
+ install(TARGETS milvus_index DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+diff --git a/internal/core/src/segcore/CMakeLists.txt b/internal/core/src/segcore/CMakeLists.txt
+index af04c11d6..9a857183a 100644
+--- a/internal/core/src/segcore/CMakeLists.txt
++++ b/internal/core/src/segcore/CMakeLists.txt
+@@ -48,11 +48,16 @@ if (MSYS)
+   set(PLATFORM_LIBS )
+ endif()
+ 
++if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
++  set(CXXFS_LIBS stdc++fs)
++endif ()
++
+ target_link_libraries(milvus_segcore
+         milvus_query
+         ${PLATFORM_LIBS}
+         ${TBB}
+         ${OpenMP_CXX_FLAGS}
++	${CXXFS_LIBS}
+         )
+ 
+ install(TARGETS milvus_segcore DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+diff --git a/internal/core/thirdparty/knowhere/CMakeLists.txt b/internal/core/thirdparty/knowhere/CMakeLists.txt
+index 74c97e934..70af24e55 100644
+--- a/internal/core/thirdparty/knowhere/CMakeLists.txt
++++ b/internal/core/thirdparty/knowhere/CMakeLists.txt
+@@ -11,7 +11,7 @@
+ # or implied. See the License for the specific language governing permissions and limitations under the License.
+ #-------------------------------------------------------------------------------
+ 
+-set( KNOWHERE_VERSION 3d21950 )
++set( KNOWHERE_VERSION 0c63fced )
+ 
+ message(STATUS "Building knowhere-${KNOWHERE_SOURCE_VER} from source")
+ message(STATUS ${CMAKE_BUILD_TYPE})
+@@ -30,7 +30,7 @@ endif ()
+ set( CMAKE_PREFIX_PATH ${CONAN_BOOST_ROOT} )
+ FetchContent_Declare(
+         knowhere
+-        GIT_REPOSITORY  "https://github.com/zilliztech/knowhere.git"
++        GIT_REPOSITORY  "https://github.com/matrixji/knowhere-maca.git"
+         GIT_TAG         ${KNOWHERE_VERSION}
+         SOURCE_DIR      ${CMAKE_CURRENT_BINARY_DIR}/knowhere-src
+         BINARY_DIR      ${CMAKE_CURRENT_BINARY_DIR}/knowhere-build
+diff --git a/scripts/core_build.sh b/scripts/core_build.sh
+index a510e01cf..db9cb5ab4 100755
+--- a/scripts/core_build.sh
++++ b/scripts/core_build.sh
+@@ -251,7 +251,6 @@ ${CMAKE_EXTRA_ARGS} \
+ -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX}
+ -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+ -DOpenBLAS_SOURCE=AUTO \
+--DCMAKE_CUDA_COMPILER=${CUDA_COMPILER} \
+ -DCMAKE_LIBRARY_ARCHITECTURE=${arch} \
+ -DBUILD_COVERAGE=${BUILD_COVERAGE} \
+ -DMILVUS_DB_PATH=${DB_PATH} \
+-- 
+2.17.1
+

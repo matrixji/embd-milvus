@@ -40,14 +40,14 @@ _ID_FIELD_NAME = 'id_field'
 _VECTOR_FIELD_NAME = 'float_vector_field'
 
 # Vector parameters
-_DIM = 128
+_DIM = 16
 _INDEX_FILE_SIZE = 32  # max file size of stored index
 
 # Index parameters
 _METRIC_TYPE = 'L2'
-_INDEX_TYPE = 'IVF_FLAT'
-_NLIST = 1024
-_NPROBE = 16
+_INDEX_TYPE = 'GPU_IVF_FLAT'
+_NLIST = 16
+_NPROBE = 4
 _TOPK = 3
 
 
